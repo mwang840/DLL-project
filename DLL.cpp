@@ -25,6 +25,55 @@ using namespace std;
 		last = node;
 		node->next = NULL;
 	}
+	
+	//Prints out the list in each node
+	void DLL::printList(){
+		if(first == NULL){
+			cout<<"Empty List"<<endl;
+		}
+		else{
+			DNode *tmpFirst = first;
+			cout<<"The elements of the list are: " << endl;
+			while(tmpFirst != NULL){
+				tmpFirst->song->printSong(); // DNode.printSong   DNode.song.printSong
+				tmpFirst= tmpFirst->next;
+			}
+		}
+	}
 
+
+	//Removes the song title from the list if any exist
+	int remove(string t){
+		int removed = 0;
+		Song *title = new Song();
+		Song *next = new Song();
+		if(title->title !=NULL){
+			removed = -1;
+		}
+		while(title->title != NULL){
+			removed++;
+			title = title->*next;
+		}
+		return removed;
+	}
+
+	//Pops the last node off the list, will return the last object of the node
+	Song *pop(){
+		Song *head = new Song();
+		Song *next = new Song();
+		if(head->next == NULL){
+			return NULL;
+		}
+		else{
+			Song *temp = head;
+			while(temp->next->next != NULL){
+				temp = temp->next;
+			}
+			Song *last = temp->next;
+			temp->next = NULL;
+			delete last;
+		}
+		return *head;
+	}
 
 
