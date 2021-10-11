@@ -43,7 +43,7 @@ using namespace std;
 
 
 	//Removes the song title from the list if any exist
-	int remove(string t){
+	int DLL::remove(string t){
 		int removed = 0;
 		Song *title = new Song();
 		Song *next = new Song();
@@ -57,23 +57,30 @@ using namespace std;
 		return removed;
 	}
 
-	//Pops the last node off the list, will return the last object of the node
-	Song *pop(){
-		Song *head = new Song();
-		Song *next = new Song();
-		if(head->next == NULL){
+	Song *DLL::pop(){
+		DNode *head = new DLL(); 
+		DNode *next = new DLL(); 
+		DNode *last = new DLL();
+		if(head == NULL){
+			return NULL;
+		}
+
+		else if(head->next == NULL){ =
 			return NULL;
 		}
 		else{
-			Song *temp = head;
-			while(temp->next->next != NULL){
+			DNode *temp = head; 
+			while(temp->next != NULL){
 				temp = temp->next;
 			}
-			Song *last = temp->next;
-			temp->next = NULL;
-			delete last;
+			DNode *temp = last;
+			Song *obj = temp->next;
+			last = last->prev;
+			delete temp;
+			last->next = NULL;
+			return *obj;
 		}
-		return *head;
+
 	}
 
 
