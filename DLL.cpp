@@ -70,7 +70,6 @@ using namespace std;
 
 	//Pops the last node off the list, will return the last object of the node
 	Song *DLL::pop(){
-		Song *next = new Song();
 		Song *object = last->song;
 
 		if(first == NULL){
@@ -97,11 +96,13 @@ using namespace std;
 		if(first->song->title == t){
 			last = first;
 		}
+		while(last->next != NULL){
+			last = last->next;
+		}
+		last->next = current;
 		while(current != NULL){
 			current = current->next;
 		}
-
-		printList();
 	}
 
 	//moves song with title s down one in the playlist.
@@ -113,6 +114,7 @@ using namespace std;
 		if(last->song->title == t){
 			first = last;
 		}
+		first->next = current;
 		while(current != NULL){
 			current = current->next;
 		}
@@ -121,11 +123,36 @@ using namespace std;
 	// gets the total list duration in minutes (passed in as pointers)
 	// and seconds (again, passed in as pointers)
 	void DLL::listDuration(int *tm, int *ts){
+		DNode *current = new DNode();
+		int duration, altduration;
+		duration = 0;
+		altduration = 0;
+		while(current != NULL){
+			duration += current->song->min;
+			altduration += current->song->sec * 60;
+			current = current->next;
+		}
+		if(altduration >= 60){
+			altduration = altduration / 60;
+			duration += altduration % 60;
+		}
+		*tm = duration;
+		*ts = altduration;
+		cout<<"Duration: "<<duration<< ":" << altduration <<endl;
 
 	}
 
-	//
+	//Makes a random list for the songs
 	void DLL::makeRandom(){
+		int random = rand() % numSongs;
+
+		DNode *current = new DNode();
+		DNode *s = first;
+		while(current != NULL)
+		{
+			cout<<"List is " << s;
+			current = current ->next;
+		}
 
 	}
 
