@@ -18,25 +18,25 @@ using namespace std;
 	}
 
 	//Pushing the node to the end of the list
-	// TODO: Format else statement, last's prev property is currently pointing to itself, make sure you account for all pointers that are involved
 	void DLL::push(string t, string a, int m, int s){
 		DNode *node = new DNode(t, a, m, s);
-		if(first == NULL){
+		if(first == NULL && last == NULL){
 			first = node;
 			last = node;
+			numSongs++;
 		}
 		else{
-			last->prev = last;
+			node->prev = last;
 			last->next = node;
-			node->next = NULL;
 			last = node;
+			numSongs++;
 		}
 
 	}
 
 	//Prints out the list in each node
 	void DLL::printList(){
-		if(first == NULL){
+		if(first == NULL && last == NULL){
 			cout<<"Empty List"<<endl;
 		}
 		else{
@@ -54,58 +54,51 @@ using namespace std;
 	// TODO: Modify the first if, make sure you're returning the right index and removing it properly, make sure you can remove nodes besides the first and last
 	int DLL::remove(string t){
 		int index = 0;
-		Song *s = new Song();
-		DNode *current = new DNode();
-		Song *next = new Song();
-		DNode *temp = new DNode();
-		current = first;
-		if(first->song->title == t){
-			temp = first;
-			first = first->next;
-			cout<<"Removing";
-			first->song->printSong();
-			delete first;
-			numSongs--;
-			index = 0;
-		}
-		while(current->next != NULL){
-			if(current->song->title == t && (current == last)){
+		DNode *temp = first;
+		while(temp != NULL){
+	    index++;
+		if(temp->song->title == t){
+			if(temp->prev == NULL){
+				temp = first;
+			}
+			else if(temp->next == NULL){
 				pop();
 			}
-			index++;
-			current = current->next;
+			else{
+				temp->prev->next = temp->next;
+				temp->next->prev = temp->prev;
+			}
+			delete temp;
+			numSongs--;
+			break;
+			}
+		temp = temp->next;
 		}
+		
 		return index;
 	}
 
 	// TODO: may crash or return an invalid value, not 100% sure
 	//Pops the last node off the list, will return the last object of the node
 	Song *DLL::pop(){
-		Song *object = last->song;
-
-		if(first == NULL){
-			return NULL;
-		}
-
-		else if(first->next == NULL){
-			delete first;
-			delete last;
-			return object;
-		}
-		else{
-			delete last;
-			return object;
-		}
-
+		DNode *nonExist = last;
+		Song *object = nonExist->song;
+		last = last->prev;
+		delete nonExist;
+		last->next = NULL;
+		numSongs--;
+		return object;
 	}
 
 	//// moves song with title s up one in the playlist.
     //If it is at the beginning of the list,
     //it will be moved to the end of the list.
-	// TODO: Format 
+	// TODO: Format
 	void DLL::moveUp(string t){
 		DNode *current = new DNode();
-		current = first;
+		current = first;//Move this song
+		DNode *ptemp = NULL; //Adjacent songs with ptemp and ntemp being prev and next
+		DNode *ntemp = NULL;
 		if(first == NULL){
 			cout<<"List is empty";
 		}
@@ -136,7 +129,6 @@ using namespace std;
 		//Condition 3 if there are three nodes, move each one up, the one that is being changed moves to the bottom
 		if(numSongs == 3){
 			DNode *temp = last;
-			//shift other two nodes up
 			first->next = first;
 			last->prev = first->next;
 			first = temp;
@@ -146,18 +138,23 @@ using namespace std;
 		if(numSongs == 4){
 			DNode *temp = last;
 		}
-		while(last != NULL){
+		while(current->song->title != t){
 			last = last->prev;
-			// two added functionalities in this list
-			/*
-			 * 1)
-			 *
-			 */
 		}
-		last->next = current;
-		while(current != NULL){
-			current = current->next;
+		ntemp = current->next;
+		if(current == first){
+			ptemp = last;
+			last = current;
 		}
+		else{
+			ptemp = current->prev;
+		}
+		current->next = ptemp;
+		current->prev = ptemp->prev;
+		current->prev->next = current;
+		ptemp->prev = current;
+		ptemp->next = ntemp;
+		ntemp->prev = ptemp;
 	}
 
 	//moves song with title s down one in the playlist.
@@ -166,17 +163,23 @@ using namespace std;
 	// TODO: format similar to moveDown
 	void DLL::moveDown(string t){
 		DNode *current = new DNode();
-		current = last;
-		if(first == NULL){
-			cout<<"List is empty";
-		}
-		if(last->song->title == t){
-			first = last;
-		}
-		first->next = current;
-		while(current != NULL){
+		DNode *ptemp = NULL;//Adjacent songs with ptemp and ntemp being prev and next
+		DNode *ntemp = NULL;
+		while(current->song->title !=t){
 			current = current->next;
 		}
+		ptemp = current->prev;
+		if(current == last){
+			ntemp = first;
+		}
+		else{
+			ntemp = current->next;
+		}
+		current->prev = ntemp;
+		current->next = ntemp->next;
+		ptemp->next = ntemp;
+		ntemp->prev = ptemp;
+		ntemp->next = current;
 	}
 
 	// gets the total list duration in minutes (passed in as pointers)
@@ -224,17 +227,20 @@ using namespace std;
 	}
 
 	//Destructor for dll
-	// TODO: you (maybe) will have to delete the song inside the pointer too (double check this)
 	DLL::~DLL(){
-		// TODO: Pay attention to types (make sure they match)
+
 		cout<<"deleting pointers..."<<endl;
 		DNode *current  = first;
 		DNode *temp;
-		Song *s;
+		Song *s = current->song;
+		Song *holding;
 		while(current != NULL){
-			temp = current->next->song;
+			temp = current->next;
+			holding = s;
+			delete s;
 			delete current;
 			current = temp;
+			s = holding;
 		}
 		cout<<"List is deleted"<<endl;
 	}
