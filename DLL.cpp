@@ -51,32 +51,40 @@ using namespace std;
 
 	//Removes the song title from the list if any exist
 	//Returns the index of the title being removed
-	// TODO: Modify the first if, make sure you're returning the right index and removing it properly, make sure you can remove nodes besides the first and last
 	int DLL::remove(string t){
 		int index = 0;
 		DNode *temp = first;
 		while(temp != NULL){
-	    index++;
-		if(temp->song->title == t){
-			if(temp->prev == NULL){
-				temp = first;
+			if(temp->song->title == t){
+				if(temp->prev == NULL){ // then node is first
+					first = temp; // TODO: Modify what happens in this condition
+				}
+				else if(temp->next == NULL){ // then node is last, pop is valid
+					pop();
+				}
+				else{
+					temp->prev->next = temp->next;
+					temp->next->prev = temp->prev;
+				}
+				delete temp;
+				numSongs--;
+				break;
 			}
-			else if(temp->next == NULL){
-				pop();
-			}
-			else{
-				temp->prev->next = temp->next;
-				temp->next->prev = temp->prev;
-			}
-			delete temp;
-			numSongs--;
-			break;
-			}
-		temp = temp->next;
+			temp = temp->next;
+			index++;
 		}
-		
+
 		return index;
 	}
+
+void DLL::reInsert(string t, string a, int m, int s, int i){
+	DNode *node = new Node();
+	if(first == NULL && last == NULL){
+		first = node;
+		last = node;
+		numSongs++;
+	}
+}
 
 	// TODO: may crash or return an invalid value, not 100% sure
 	//Pops the last node off the list, will return the last object of the node
@@ -95,66 +103,68 @@ using namespace std;
     //it will be moved to the end of the list.
 	// TODO: Format
 	void DLL::moveUp(string t){
-		DNode *current = new DNode();
-		current = first;//Move this song
-		DNode *ptemp = NULL; //Adjacent songs with ptemp and ntemp being prev and next
-		DNode *ntemp = NULL;
+		DNode *current = first;
+		// If list has zero nodes
 		if(first == NULL){
 			cout<<"List is empty";
-		}
-
-		if(first->song->title == t){
-			last = first;
-			first = first->prev;
-		}
-		//Check if the last node is the node if is trying moving
-		if((last->song->title == t)){
-			last->prev = first->next;
-
-			last->next = last->prev;
-			// this isnt quite working properly
+			return;
 		}
 		//Condition 1 if list is only one nodes, list is unchanged
-		if(numSongs == 1){
+		// If list has one node
+		else if(numSongs == 1){
 			last = first;
 		}
 
-		//Condition 2 if there are two nodes, swap the two, the list could have more then 2
-		if(numSongs >= 2){
+		else if(first->song->title == t){
+			DNode *temp = first;
+			temp->next = NULL;
+			last->prev = NULL;
+			last = temp;
+
+		}
+		//Check if the last node is the node if is trying moving
+		else if((last->song->title == t)){
 			DNode *temp = last;
-			last = first;
+			last->prev = NULL;
 			first = temp;
 		}
-
 		//Condition 3 if there are three nodes, move each one up, the one that is being changed moves to the bottom
-		if(numSongs == 3){
-			DNode *temp = last;
-			first->next = first;
-			last->prev = first->next;
+		else if(numSongs == 3 && current->next->song->title == t){
+			//1) assign a variable to the middle
+			//2) Reroute pointers, without doing any first = or last =, you can do first->next or last->next but do not
+			// do first = or last = until the very last step
+			//3) assign first to the moved up middle node, and do not reassign
+			//4) Make sure there is no last = anywhere inside this else if statement
+			DNode *temp = first->next;
+			temp->next = first;
+			temp->prev = NULL;
+			first->prev = temp;
+			first->next = last;
+			last->prev = first;
 			first = temp;
 		}
 
 		//Condition 4
-		if(numSongs == 4){
-			DNode *temp = last;
-		}
-		while(current->song->title != t){
-			last = last->prev;
-		}
-		ntemp = current->next;
-		if(current == first){
-			ptemp = last;
-			last = current;
+		else if(numSongs == 4 && current->song->title == t){
+			DNode *attempt = first->next;
+			attempt->next->next = first;
+			attempt->prev = NULL;
+			first->prev = attempt->next;
+			first->next = last;
+			last->prev = first;
+			first = attempt;
+
 		}
 		else{
-			ptemp = current->prev;
+			DNode *tempt = first;
+			DNode *ltempt = first;
+			while(ltempt->next != NULL){
+				ltempt = ltempt->next;
+			}
+			tempt = first->next;
+			first->next = NULL;
+			last->next = first;
 		}
-		current->next = ptemp;
-		current->prev = ptemp->prev;
-		current->prev->next = current;
-		ptemp->prev = current;
-		ptemp->next = ntemp;
-		ntemp->prev = ptemp;
 	}
 
 	//moves song with title s down one in the playlist.
@@ -163,23 +173,51 @@ using namespace std;
 	// TODO: format similar to moveDown
 	void DLL::moveDown(string t){
 		DNode *current = new DNode();
-		DNode *ptemp = NULL;//Adjacent songs with ptemp and ntemp being prev and next
-		DNode *ntemp = NULL;
-		while(current->song->title !=t){
-			current = current->next;
+		// If list has zero nodes
+		if(first == NULL){
+			cout<<"List is empty";
+			return;
 		}
-		ptemp = current->prev;
-		if(current == last){
-			ntemp = first;
+		//Condition 1 if list is only one nodes, list is unchanged
+		// If list has one node
+		else if(numSongs == 1){
+			last = first;
+		}
+		//Swaps first and next
+		else if(first->song->title == t){
+			DNode *temp = first;
+			temp->next = NULL;
+			last->prev = NULL;
+			last = temp;
+		}
+		else if(last->song->title == t){
+			DNode *temp = first;
+			temp->next = NULL;
+			last->prev = NULL;
+			last = temp;
+		}
+		else if(numSongs == 3){
+			DNode *temp = first->next;
+			temp->next = NULL;
+			last->prev = first;
+			first->prev = NULL;
+			first = last;
+		}
+		//Condition 4
+		else if(numSongs == 4){
+			DNode *temp = first->next;
 		}
 		else{
-			ntemp = current->next;
+			DNode *secLast = NULL;
+			DNode *temp = first;
+			while(temp->next != NULL){
+				secLast = temp;
+				temp = temp->next;
+			}
+			secLast->next = NULL;
+			last->next = first;
+			first = last;
 		}
-		current->prev = ntemp;
-		current->next = ntemp->next;
-		ptemp->next = ntemp;
-		ntemp->prev = ptemp;
-		ntemp->next = current;
 	}
 
 	// gets the total list duration in minutes (passed in as pointers)
@@ -200,14 +238,13 @@ using namespace std;
 		}
 		*tm = duration;
 		*ts = altduration;
-		cout<<"Duration: "<<duration<< ":" << altduration <<endl;
 
 	}
 
 	//Makes a random list for the songs
 	void DLL::makeRandom(){
 
-		DNode *current = new DNode();
+		DNode *current = first;
 
 		while(current != NULL)
 		{
@@ -229,7 +266,7 @@ using namespace std;
 	//Destructor for dll
 	DLL::~DLL(){
 
-		cout<<"deleting pointers..."<<endl;
+		cout<<"Making a new playlist..."<<endl;
 		DNode *current  = first;
 		DNode *temp;
 		Song *s = current->song;
@@ -241,6 +278,7 @@ using namespace std;
 			delete current;
 			current = temp;
 			s = holding;
+			current = current->next;
 		}
 		cout<<"List is deleted"<<endl;
 	}
