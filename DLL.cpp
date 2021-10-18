@@ -78,12 +78,21 @@ using namespace std;
 	}
 
 void DLL::reInsert(string t, string a, int m, int s, int i){
-	DNode *node = new Node();
+	DNode *node = new DNode();
 	if(first == NULL && last == NULL){
 		first = node;
 		last = node;
 		numSongs++;
 	}
+	else{
+		node->prev = last;
+		last->next = node;
+		last = node;
+		numSongs++;
+
+
+	}
+
 }
 
 	// TODO: may crash or return an invalid value, not 100% sure
@@ -105,28 +114,23 @@ void DLL::reInsert(string t, string a, int m, int s, int i){
 	void DLL::moveUp(string t){
 		DNode *current = first;
 		// If list has zero nodes
-		if(first == NULL){
-			cout<<"List is empty";
+		if(numSongs <= 1){
 			return;
 		}
-		//Condition 1 if list is only one nodes, list is unchanged
-		// If list has one node
-		else if(numSongs == 1){
-			last = first;
-		}
+		string title1 = first->song->title;
 
-		else if(first->song->title == t){
-			DNode *temp = first;
-			temp->next = NULL;
-			last->prev = NULL;
-			last = temp;
-
-		}
-		//Check if the last node is the node if is trying moving
-		else if((last->song->title == t)){
-			DNode *temp = last;
-			last->prev = NULL;
-			first = temp;
+		if(first->song->title == t || last->song->title == t){
+			if(title1 == t){
+				DNode *temp = first;
+				temp->next = NULL;
+				last->prev = NULL;
+				last = temp;
+			}
+			else{
+				DNode *temp = last;
+				last->prev = NULL;
+				first = temp;
+			}
 		}
 		//Condition 3 if there are three nodes, move each one up, the one that is being changed moves to the bottom
 		else if(numSongs == 3 && current->next->song->title == t){
@@ -156,14 +160,28 @@ void DLL::reInsert(string t, string a, int m, int s, int i){
 
 		}
 		else{
-			DNode *tempt = first;
+
+			// When are you moving the node with the title you pass in?
+
 			DNode *ltempt = first;
-			while(ltempt->next != NULL){
+			while(ltempt != NULL && ltempt->song->title != t){ // iterating down to end
 				ltempt = ltempt->next;
 			}
-			tempt = first->next;
-			first->next = NULL;
-			last->next = first;
+			if(ltempt != NULL){
+				cout << "title found" << endl; // you found the title
+				DNode *ltPrev = ltempt->prev;
+				DNode *ltNext = ltempt->next;
+				DNode *ltPPrev = ltPrev->prev;
+				if(ltPPrev != NULL){
+					ltPPrev->next = ltempt;
+				}
+				ltNext->prev = ltPrev;
+				ltPrev->prev = ltempt;
+				ltPrev->next = ltNext;
+				ltempt->prev = ltPPrev;
+				ltempt->next = ltPrev;
+			}
+			return;
 		}
 	}
 
@@ -172,52 +190,78 @@ void DLL::reInsert(string t, string a, int m, int s, int i){
 	//beginning of the list.
 	// TODO: format similar to moveDown
 	void DLL::moveDown(string t){
-		DNode *current = new DNode();
+		DNode *current = first;
+
 		// If list has zero nodes
-		if(first == NULL){
-			cout<<"List is empty";
+		if(numSongs <= 1){
 			return;
 		}
-		//Condition 1 if list is only one nodes, list is unchanged
-		// If list has one node
-		else if(numSongs == 1){
-			last = first;
-		}
-		//Swaps first and next
-		else if(first->song->title == t){
-			DNode *temp = first;
-			temp->next = NULL;
-			last->prev = NULL;
-			last = temp;
-		}
-		else if(last->song->title == t){
-			DNode *temp = first;
-			temp->next = NULL;
-			last->prev = NULL;
-			last = temp;
-		}
-		else if(numSongs == 3){
-			DNode *temp = first->next;
-			temp->next = NULL;
-			last->prev = first;
-			first->prev = NULL;
-			first = last;
-		}
-		//Condition 4
-		else if(numSongs == 4){
-			DNode *temp = first->next;
+		else if(first->song->title == t || last->song->title == t){
+			string firstSong = first->song->title;
+			if(firstSong == t){
+				DNode *tmpNext = first->next;
+				if(tmpNext->next == NULL){
+					// 2 nodes
+					tmpNext->next = first;
+					first->prev = tmpNext;
+					tmpNext->prev = NULL;
+					first->next = NULL;
+					first = tmpNext;
+				}
+				else{
+					// > 2 nodes
+					DNode *tmpNN = tmpNext->next;
+					tmpNext->next = first; // tmpNext check
+					first->next = tmpNN; // first check
+					tmpNN->prev = first;
+					first->prev = tmpNext;
+					tmpNext->prev = NULL;
+					first = tmpNext;
+
+				}
+			}
+			else{
+				Song *newSong = pop();
+				string title = newSong->title;
+				string artist = newSong->artist;
+				DNode *newNode = new DNode(title,artist,newSong->min,newSong->sec);
+				newNode->next = first;
+				first->prev = newNode;
+				first = newNode;
+			}
 		}
 		else{
-			DNode *secLast = NULL;
-			DNode *temp = first;
-			while(temp->next != NULL){
-				secLast = temp;
-				temp = temp->next;
+			DNode *curr = first;
+			while(curr != NULL){
+				if(curr->song->title == t){
+					break;
+				}
 			}
-			secLast->next = NULL;
-			last->next = first;
-			first = last;
+			if(curr != NULL){
+				// found the song
+				bool newLast = false;
+				DNode *currPrev = curr->prev;
+				DNode *currNext = curr->next;
+				if(currNext->next != NULL){
+					// 2nd to last
+					currNext->next->prev = curr;
+					curr->next = currNext->next;
+				}
+				else{
+					newLast = true;
+					curr->next = NULL;
+				}
+				currNext->prev = currPrev;
+				currNext->next = curr;
+				currPrev->next = currNext;
+				curr->prev = currNext;
+				if(newLast){
+					last = curr;
+				}
+			}
+			return;
 		}
+
 	}
 
 	// gets the total list duration in minutes (passed in as pointers)
@@ -250,7 +294,7 @@ void DLL::reInsert(string t, string a, int m, int s, int i){
 		{
 			for(int i = 0; i < numSongs; ++i){
 				int random = rand() % 2;
-				if(random == 0){
+				if(random != 0){
 					moveUp(current->song->title);
 				}
 				else{
